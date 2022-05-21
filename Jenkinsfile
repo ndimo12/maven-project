@@ -1,27 +1,69 @@
- pipeline {
-    agent any
+Skip to content
+Search or jump to…
+Pulls
+Issues
+Marketplace
+Explore
+ 
+@ndimo12 
+devopseasylearning
+/
+SESSION-01-DEVELOPMENT
+Public
+Code
+Issues
+Pull requests
+9
+Actions
+Projects
+Wiki
+Security
+Insights
+SESSION-01-DEVELOPMENT/Jenkinsfile-serge
+@ndimo12
+ndimo12 Update Jenkinsfile-serge
+Latest commit 0cbde1a 21 hours ago
+ History
+ 1 contributor
+286 lines (222 sloc)  6.08 KB
    
-   environment {
-		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
-	}
+pipeline {
+    agent any
 
-    options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
+ options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
      artifactNumToKeepStr: '', daysToKeepStr: '3', numToKeepStr: '5'))
       disableConcurrentBuilds() }
-      
 
+
+
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+	}
     stages {
         
-       stage('Setup parameters') {
+        stage('Setup parameters') {
             steps {
                 script { 
                     properties([
                         parameters([
-                          
+                            choice(
+                                choices: ['No', 'Yes'], 
+                                name: 'Clean'
+                            ),
 
+                            choice(
+                                choices: ['Docker', 'Docker-compose', 'K8S'], 
+                                name: 'environment'
+                            ),
+
+                            choice(
+                                choices: ['8081', '8082', '8083', '8051', '8053', '7082', '6083', '5082', '4083'], 
+                                name: 'Port'
+                            ),
+                       
                             string(
-                                defaultValue: '001', 
-                                name: 'ImageTAG', 
+                                defaultValue: '1.0.0', 
+                                name: 'ImageTag', 
                                 trim: true
                             )
                         ])
@@ -31,114 +73,142 @@
         }
 
 
-
-
         stage('clean') {
+            when {
+                 expression { env.Clean== "Yes" }
+            }
             agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
+                docker {
+                    image 'maven:3.8.5-openjdk-18'
+                }
+            }
             steps {
-               sh '''
-               rm -rf webapp/target/webapp.war || true
-              mvn clean
-               '''
+                sh '''
+                 mvn clean 
+                '''
             }
         }
 
-        stage('compile') {
+
+        stage('validate') {
             agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-             mvn compile
-               '''
+                docker {
+                    image 'maven:3.8.5-openjdk-18'
+                }
             }
-        }
-
-stage('validate') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
             steps {
-               sh '''
-               mvn validate
-               '''
+                sh '''
+                mvn validate
+                '''
             }
         }
 
 
 
-stage('test') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
+         stage('compile') {
+             agent {
+                docker {
+                    image 'maven:3.8.5-openjdk-18'
+                }
+            }
             steps {
-               sh '''
-             mvn test 
-               '''
+                sh '''
+                mvn  compile 
+                '''
             }
         }
+ 
 
-stage('package') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-            
-              mvn package
-              ls -l webapp/target
-              pwd
-               '''
+        stage('test') {
+            agent {
+                docker {
+                    image 'maven:3.8.5-openjdk-18'
+                }
             }
-        }
-
-stage('verify') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
             steps {
-               sh '''
-              mvn verify
-               '''
+                sh '''
+                mvn test
+                '''
             }
         }
 
 
-stage('install') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
 
+        stage('package') {
+            agent {
+                docker {
+                    image 'maven:3.8.5-openjdk-11'
+                }
+            }
             steps {
-               sh '''
-           mvn install
-               '''
+                sh '''
+                mvn package
+                '''
             }
         }
+
        
-stage('build ') {
-
+        stage('verify') {
+            agent {
+                docker {
+                    image 'maven:3.6.0-jdk-11-slim'
+                }
+            }
             steps {
-               sh '''
-           docker build -t devopseasylearning2021/ndimo:$ImageTAG .
-               '''
+                sh '''
+                 mvn verify
+                '''
             }
         }
-       
+
+ 
+        stage('install') {
+            agent {
+                docker {
+                    image 'maven:3.6.0-jdk-11-slim'
+                }
+            }
+            steps {
+                sh '''
+                 mvn install
+                '''
+            }
+        }
+
+        
+
+
+          stage('SonarQube analysis') {
+            agent {
+                docker {
+
+                  image 'sonarsource/sonar-scanner-cli:4.7.0'
+                }
+               }
+               environment {
+        CI = 'true'
+        scannerHome='/opt/sonar-scanner'
+    }
+            steps{
+                withSonarQubeEnv('Sonar') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
 
 
 
+        stage('build images') {
+ 
+            steps {
+                sh '''
+                 docker build -t devopseasylearning2021/eric:$ImageTag -f apache.Dockerfile .
+                '''
+            }
+        }
 
 
-      stage('Docker Login') {
+             stage('Docker Login') {
 
 			steps {
 				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
@@ -151,7 +221,66 @@ stage('build ') {
      stage('Docker push ') {
             steps {
                sh '''
-              docker push devopseasylearning2021/ndimo:$ImageTAG 
+              docker push devopseasylearning2021/eric:$ImageTag
+                '''
+            }
+        }
+
+
+
+        stage('deploy with docker') {
+            when {
+                 expression { env.environment== "Docker" }
+            }
+ 
+            steps {
+                sh '''
+                docker rm -f odilia || true
+                 docker run -d --name odilia -p $Port:80 devopseasylearning2021/eric:$ImageTag 
+                 docker ps -a 
+                '''
+            }
+        }
+
+ 
+        stage('deploy with compose') {
+            when {
+                 expression { env.environment== "Docker-compose" }
+            }
+ 
+            steps {
+                sh '''
+docker-compose down 
+docker rm -f odilia || true
+rm -rf docker-compose.yml || true
+cat <<EOF > docker-compose.yml
+version: "3"
+services:
+    tomcat:
+       image: devopseasylearning2021/eric:$ImageTag 
+       container_name: odilia
+       expose:
+        - 80
+       ports:
+         - $Port:80
+EOF
+
+cat docker-compose.yml
+docker compose up -d
+docker-compose ps 
+'''
+            }
+        }
+
+        
+         stage('deploy with kubernetes') {
+             when {
+                 expression { env.environment== "K8S" }
+            }
+ 
+            steps {
+                sh '''
+                ls
                 '''
             }
         }
@@ -159,4 +288,41 @@ stage('build ') {
 
 
     }
+
+  post {
+   
+   success {
+      slackSend (channel: '#development-alerts', color: 'good', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+
+ 
+    unstable {
+      slackSend (channel: '#development-alerts', color: 'warning', message: "UNSTABLE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+
+    failure {
+      slackSend (channel: '#development-alerts', color: '#FF0000', message: "FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+   
+    cleanup {
+      deleteDir()
+    }
 }
+
+
+
+
+}
+© 2022 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Loading complete
