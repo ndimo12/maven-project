@@ -3,101 +3,107 @@ pipeline {
 
     stages {
 
-       stage('Setup parameters') {
-            steps {
-                script { 
-                    properties([
-                        parameters([
-                          
-
-                            string(
-                                defaultValue: '001', 
-                                name: 'Image-TAG', 
-                                trim: true
-                            )
-                        ])
-                    ])
-                }
         stage('clean') {
-
             agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
             steps {
                sh '''
-                mvn clean
-
-                '''
+               rm -rf webapp/target/webapp.war || true
+              mvn clean
+               '''
             }
         }
-    
 
-    
         stage('compile') {
-
             agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
             steps {
                sh '''
-                mvn compile
-                '''
+             mvn compile
+               '''
             }
         }
-    
 
+stage('validate') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
 
-    
-        stage('test') {
-
-            agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
             steps {
-                sh'''
-                mvn test
-                '''
+               sh '''
+               mvn validate
+               '''
             }
         }
 
-         stage('packege') {
 
-            agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
+
+stage('test') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
             steps {
-                sh'''
-                mvn packege
-                '''
+               sh '''
+             mvn test 
+               '''
             }
         }
 
+stage('package') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
 
-        stage('verify') {
-
-            agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
             steps {
-                sh'''
-                mvn verify
-                '''
+               sh '''
+            
+              mvn package
+              ls -l webapp/target
+              pwd
+               '''
             }
         }
 
-       stage('install') {
+stage('verify') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
 
-            agent {
-        docker { image 'node:16.13.1-alpine' }
-    }
             steps {
-                sh'''
-                mvn install
-                '''
+               sh '''
+              mvn verify
+               '''
             }
         }
-        
-}
 
 
+stage('install') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
+            steps {
+               sh '''
+           mvn install
+               '''
+            }
+        }
+       
+stage('build ') {
+
+            steps {
+               sh '''
+           docker build -t devopseasylearning2021:001 .
+               '''
+            }
+        }
+       
+
+
+    }
 }
