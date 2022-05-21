@@ -1,7 +1,67 @@
-pipeline {
+[4:03 PM, 5/21/2022] Kemvou eric USA: pipeline {
     agent any
+   
+   environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+	}
+
+    options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
+     artifactNumToKeepStr: '', daysToKeepStr: '3', numToKeepStr: '5'))
+      disableConcurrentBuilds() }
+      
 
     stages {
+        
+       stage('Setup parameters') {
+            steps {
+                script { 
+                    properties([
+                        parameters([
+                          
+
+                            string(
+                                defaultValue: '001', 
+                                name: 'ImageTAG', 
+                                trim: true
+                            )
+                        ])
+                    ])
+                }
+      …
+[4:06 PM, 5/21/2022] Kemvou eric USA: pipeline {
+    agent any
+   
+   environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+	}
+
+    options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
+     artifactNumToKeepStr: '', daysToKeepStr: '3', numToKeepStr: '5'))
+      disableConcurrentBuilds() }
+      
+
+    stages {
+        
+       stage('Setup parameters') {
+            steps {
+                script { 
+                    properties([
+                        parameters([
+                          
+
+                            string(
+                                defaultValue: '001', 
+                                name: 'ImageTAG', 
+                                trim: true
+                            )
+                        ])
+                    ])
+                }
+            }
+        }
+
+
+
 
         stage('clean') {
             agent {
@@ -98,11 +158,34 @@ stage('build ') {
 
             steps {
                sh '''
-           docker build -t devopseasylearning2021:001 .
+           docker build -t devopseasylearning2021/ndimo:$ImageTAG .
                '''
             }
         }
        
+
+
+
+
+
+      stage('Docker Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+
+           
+            
+
+     stage('Docker push ') {
+            steps {
+               sh '''
+              docker push devopseasylearning2021/ndimo:$ImageTAG 
+                '''
+            }
+        }
+
 
 
     }
