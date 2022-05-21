@@ -3,107 +3,98 @@ pipeline {
 
     stages {
 
+           stage('init') {
+      checkout scm
+   }
+   stage('build') {
+      sh '''
+         mvn clean package
+         cd target
+         cp ../src/main/resources/web.config web.config
+         cp todo-app-java-on-azure-1.0-SNAPSHOT.jar app.jar 
+         zip todo.zip app.jar web.config
+      '''
+   }
         stage('clean') {
+
             agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-               rm -rf webapp/target/webapp.war || true
-              mvn clean
-               '''
-            }
-        }
-
-        stage('compile') {
-            agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-             mvn compile
-               '''
-            }
-        }
-
-stage('validate') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-               mvn validate
-               '''
-            }
-        }
-
-
-
-stage('test') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-             mvn test 
-               '''
-            }
-        }
-
-stage('package') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-            
-              mvn package
-              ls -l webapp/target
-              pwd
-               '''
-            }
-        }
-
-stage('verify') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-              mvn verify
-               '''
-            }
-        }
-
-
-stage('install') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
-
-            steps {
-               sh '''
-           mvn install
-               '''
-            }
-        }
-       
-stage('build ') {
-
-            steps {
-               sh '''
-           docker build -t devopseasylearning2021:001 .
-               '''
-            }
-        }
-       
-
-
+        docker { image 'node:16.13.1-alpine' }
     }
+            steps {
+               sh '''
+                mvn clean
+
+                '''
+            }
+        }
+    
+
+    
+        stage('compile') {
+
+            agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+            steps {
+               sh '''
+                mvn compile
+                '''
+            }
+        }
+    
+
+
+    
+        stage('test') {
+
+            agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+            steps {
+                sh'''
+                mvn test
+                '''
+            }
+        }
+
+         stage('packege') {
+
+            agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+            steps {
+                sh'''
+                mvn packege
+                '''
+            }
+        }
+
+
+        stage('verify') {
+
+            agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+            steps {
+                sh'''
+                mvn verify
+                '''
+            }
+        }
+
+       stage('install') {
+
+            agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
+            steps {
+                sh'''
+                mvn install
+                '''
+            }
+        }
+        
+}
+
+
 }
