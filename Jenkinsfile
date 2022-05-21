@@ -1,31 +1,4 @@
-Skip to content
-Search or jump to…
-Pulls
-Issues
-Marketplace
-Explore
- 
-@ndimo12 
-devopseasylearning
-/
-SESSION-01-DEVELOPMENT
-Public
-Code
-Issues
-Pull requests
-9
-Actions
-Projects
-Wiki
-Security
-Insights
-SESSION-01-DEVELOPMENT/Jenkinsfile-serge
-@ndimo12
-ndimo12 Update Jenkinsfile-serge
-Latest commit 0cbde1a 21 hours ago
- History
- 1 contributor
-286 lines (222 sloc)  6.08 KB
+
    
 pipeline {
     agent any
@@ -313,16 +286,3 @@ docker-compose ps
 
 
 }
-© 2022 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Loading complete
