@@ -27,36 +27,6 @@
                         ])
                     ])
                 }
-      …
-[4:06 PM, 5/21/2022] Kemvou eric USA: pipeline {
-    agent any
-   
-   environment {
-		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
-	}
-
-    options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
-     artifactNumToKeepStr: '', daysToKeepStr: '3', numToKeepStr: '5'))
-      disableConcurrentBuilds() }
-      
-
-    stages {
-        
-       stage('Setup parameters') {
-            steps {
-                script { 
-                    properties([
-                        parameters([
-                          
-
-                            string(
-                                defaultValue: '001', 
-                                name: 'ImageTAG', 
-                                trim: true
-                            )
-                        ])
-                    ])
-                }
             }
         }
 
