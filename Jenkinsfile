@@ -2,27 +2,108 @@ pipeline {
     agent any
 
     stages {
-        stage('Hello') {
+
+        stage('clean') {
+            agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
             steps {
-                echo 'Hello World'
+               sh '''
+               rm -rf webapp/target/webapp.war || true
+              mvn clean
+               '''
             }
         }
-    }
 
-    stages {
-        stage('Hello3') {
+        stage('compile') {
+            agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
             steps {
-                echo 'Hello World'
+               sh '''
+             mvn compile
+               '''
             }
         }
-    }
 
+stage('validate') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
 
-    stages {
-        stage('Hello4') {
             steps {
-                echo 'Hello World'
+               sh '''
+               mvn validate
+               '''
             }
         }
+
+
+
+stage('test') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
+            steps {
+               sh '''
+             mvn test 
+               '''
+            }
+        }
+
+stage('package') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
+            steps {
+               sh '''
+            
+              mvn package
+              ls -l webapp/target
+              pwd
+               '''
+            }
+        }
+
+stage('verify') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
+            steps {
+               sh '''
+              mvn verify
+               '''
+            }
+        }
+
+
+stage('install') {
+    agent {
+                 docker { image 'maven:3.8.5-openjdk-8-slim' }
+             }
+
+            steps {
+               sh '''
+           mvn install
+               '''
+            }
+        }
+       
+stage('build ') {
+
+            steps {
+               sh '''
+           docker build -t devopseasylearning2021:001 .
+               '''
+            }
+        }
+       
+
+
     }
 }
