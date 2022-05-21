@@ -3,7 +3,21 @@ pipeline {
 
     stages {
 
+       stage('Setup parameters') {
+            steps {
+                script { 
+                    properties([
+                        parameters([
+                          
 
+                            string(
+                                defaultValue: '001', 
+                                name: 'Image-TAG', 
+                                trim: true
+                            )
+                        ])
+                    ])
+                }
         stage('clean') {
 
             agent {
