@@ -9,40 +9,42 @@ options { buildDiscarder(logRotator(artifactDaysToKeepStr: '',
     stages {
         stage('Hello') {
             steps { 
-                   ...
-                sh 
+                sh   '''
+                   docker package 
+               
                 ls
                 pwd
                 top
                 free
-                ...
+                
+                '''
             }
         }
         
         stage('Hello-serge') {
             steps {
-                   ...
-                sh 
+                sh   '''
+                docker package
                 ls
                 pwd
                 top
                 mkdir guy
                 free
-                ...
+               '''
             }
         }
         
         
         stage('Hello1') {
             steps {
-                   ...
-                sh 
+                   sh  '''
+        
                 ls
                 pwd
                 top
                 mkdir guy
                 touch test
-                ...
+              '''  
             }
         }
     }
