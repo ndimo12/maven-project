@@ -1,4 +1,4 @@
-[4:03 PM, 5/21/2022] Kemvou eric USA: pipeline {
+ pipeline {
     agent any
    
    environment {
