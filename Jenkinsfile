@@ -179,7 +179,7 @@ stage('build ') {
     stage('Deploy with docker ') {
             steps {
                sh '''
-               docker run -d -p 8089:8080 devopseasylearning2021/eric:$ImageTAG 
+               docker run -d -p 4201:4202 devopseasylearning2021/eric:$ImageTAG 
                 '''
             }
         }
