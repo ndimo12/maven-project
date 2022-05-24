@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent { 
+        label 'jenkins-node'
+         }
    
    environment {
 		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
@@ -85,16 +87,11 @@ stage('test') {
         }
 
 stage('package') {
-    agent {
-                 docker { image 'maven:3.8.5-openjdk-8-slim' }
-             }
+
 
             steps {
                sh '''
-            
-              mvn package
-              ls -l webapp/target
-              pwd
+         mvn package
                '''
             }
         }
@@ -148,7 +145,7 @@ stage('build ') {
 
             steps {
                sh '''
-           docker build -t devopseasylearning2021/ndimo:$ImageTAG .
+           docker build -t devopseasylearning2021/eric:$ImageTAG .
                '''
             }
         }
@@ -171,7 +168,18 @@ stage('build ') {
      stage('Docker push ') {
             steps {
                sh '''
-              docker push devopseasylearning2021/ndimo:$ImageTAG 
+              docker push devopseasylearning2021/eric:$ImageTAG 
+                '''
+            }
+        }
+
+    
+
+
+    stage('Deploy with docker ') {
+            steps {
+               sh '''
+               docker run -d -p 8089:8080 devopseasylearning2021/eric:$ImageTAG 
                 '''
             }
         }
